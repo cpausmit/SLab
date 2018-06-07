@@ -11,6 +11,7 @@ class ScopeTrace:
         # data record
         self.data = data
         self.n_average = n_average
+        self.reading_error = 0
         # get the oscilloscope setup
         self.record_length = self.find_value('Record Length',data)
         self.sample_interval = self.find_value('Sample Interval',data)
@@ -29,20 +30,25 @@ class ScopeTrace:
         self.xvalues = []
         self.yvalues = []
         for line in data.split("\n"):
-            f = line.split(',')
-            if len(f)<5:
-                continue
-            
-            x += float(i)
-            y += float(f[4])+self.vertical_offset
-            n += 1
-            if n>n_average:
-                self.xvalues.append(x/n)
-                self.yvalues.append(y/n)
-                n = 0
-                x = 0
-                y = 0
-            i += 1
+
+            try:
+                f = line.split(',')
+                if len(f)<5:
+                    continue
+                
+                x += float(i)
+                y += float(f[4])+self.vertical_offset
+                n += 1
+                if n>n_average:
+                    self.xvalues.append(x/n)
+                    self.yvalues.append(y/n)
+                    n = 0
+                    x = 0
+                    y = 0
+                i += 1
+            except:
+                print ' ERROR - reading file: '+ line
+                self.reading_error += 1
             
     def find_value(self,name,data,type="f"):
         value = self.undefined_value
@@ -86,7 +92,6 @@ class ScopeTrace:
         for y in self.yvalues:
             delta_y = last_y - y
             if   y<baseline-threshold:
-                print " D: %f,  Dmin: %f"%(delta_y,delta_min)
                 if delta_y>delta_min and not latched:
                     n_pulses_found += 1
                     latched = True
