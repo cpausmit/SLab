@@ -29,8 +29,8 @@ def plot_trace(filename,trace,baseline,threshold,delta_min,n_pulses):
     
     # tick marker sizes
     ax = plt.gca()
-    ax.xaxis.set_tick_params(labelsize=16)
-    ax.yaxis.set_tick_params(labelsize=20)
+    #ax.xaxis.set_tick_params(labelsize=16)
+    #ax.yaxis.set_tick_params(labelsize=20)
     
     ymin,ymax = ax.get_ylim()
     dy = ymax-ymin
