@@ -1,6 +1,8 @@
 #---------------------------------------------------------------------------------------------------
 # C L A S S E S
 #---------------------------------------------------------------------------------------------------
+import math
+
 class ScopeTrace:
     """
     Class to mange a full scope trace.
@@ -34,12 +36,13 @@ class ScopeTrace:
             try:
                 f = line.split(',')
                 if len(f)<5:
+                    print ' Skipping line: %s'%line
                     continue
                 
                 x += float(i)
                 y += float(f[4])+self.vertical_offset
                 n += 1
-                if n>n_average:
+                if n>=n_average:
                     self.xvalues.append(x/n)
                     self.yvalues.append(y/n)
                     n = 0
@@ -80,8 +83,10 @@ class ScopeTrace:
         baseline = 0
         jitter = 0
         if n>0:
-            baseline = sum/n
-            jitter = abs(sum2 - 2*baseline*sum + baseline*baseline)/n
+            baseline = sum/float(n)
+            jitter = math.sqrt(sum2/float(n) - baseline*baseline)
+            
+            #jitter = abs(sum2 - 2.0*baseline*sum + baseline*baseline)/float(n)
 
         return (baseline,jitter)
 
@@ -101,3 +106,45 @@ class ScopeTrace:
 
                 
         return n_pulses_found 
+
+    def inverted(self):
+	baseline = self.find_baseline_and_jitter(self.xvalues[0], self.trigger_point)[0]
+	return [-(val-baseline) for val in self.yvalues]
+
+    def reset_adcs(self):
+	self.yvalues = [0 for val in self.yvalues]
+	return
+    
+    def add_adcs(self,yvalues,invert=False):
+        for i in range(0,len(yvalues)):
+            if invert:
+                self.yvalues[i] -= yvalues[i]
+            else:
+	        self.yvalues[i] += yvalues[i]
+	return 
+
+    def write_trace(self,file_name):
+        with open(file_name,"w") as fh:
+            i = 0
+            for x,y in zip(self.xvalues,self.yvalues):
+                if   i==0:
+                    s = "Record Length, %s,"%str(self.record_length)
+                elif i==1:
+                    s = "Sample Interval,%s,"%str(self.sample_interval)
+                elif i==2:
+                    s = "Trigger Point,%s,"%str(self.trigger_point)
+                elif i==3:
+                    s = "Vertical Units,%s,"%self.vertical_units
+                elif i==4:
+                    s = "Vertical Scale,%s,"%str(self.vertical_scale)
+                elif i==5:
+                    s = "Vertical Offset,%s,"%str(self.vertical_offset)
+                elif i==6:
+                    s = "Horizontal Units,%s,"%self.horizontal_units
+                elif i==7:
+                    s = "Source,%s,"%self.source
+                else:
+                    s = ",,"
+                fh.write("%s,%f,%f,\n"%(s,x,y-self.vertical_offset))
+
+                i += 1

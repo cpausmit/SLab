@@ -1,3 +1,4 @@
+
 //--------------------------------------------------------------------------------------------------
 // This function simulates a classical counting experiment, where you have a light source that is
 // attenuated until you have a very low number of photons passing through and hitting the connected
