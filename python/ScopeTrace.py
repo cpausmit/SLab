@@ -36,7 +36,8 @@ class ScopeTrace:
             try:
                 f = line.split(',')
                 if len(f)<5:
-                    print ' Skipping line: %s'%line
+                    if line != '':
+                        print ' Skipping line: %s'%line
                     continue
                 
                 x += float(i)

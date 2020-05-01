@@ -8,6 +8,8 @@ from scipy.optimize import curve_fit
 
 import ScopeTrace
 
+merge_bins = 1
+
 raw = True
 plotting = True
 fitting = True
@@ -24,7 +26,6 @@ def fit_pulse(trace):
     mpv = x_array[idx]
     amp = y_array.max()
     landau_par, pcov_rmin = curve_fit(pylandau.landau, x_array, y_array, p0=(mpv, 1, amp))
-    print landau_par
 
     plot_pulse(trace,baseline)
     plt.plot(x_array,mylandau(x_array, landau_par[0], landau_par[1], landau_par[2]), label='Landau Fit')
@@ -110,7 +111,7 @@ for filename in sys.argv[1:]:
         data = file.read()
 
     # decode the scope trace
-    trace = ScopeTrace.ScopeTrace(data)
+    trace = ScopeTrace.ScopeTrace(data,merge_bins)
     x_array = np.array(trace.xvalues)
     if trace.reading_error>1 or len(trace.yvalues)<10:
         print " WARNING -- skipping this file has reading errors: %s"%(filename)
@@ -131,5 +132,10 @@ for filename in sys.argv[1:]:
         plt.show()
         
     if fitting:
-        landau_par, pcov_rmin = fit_pulse(trace)
+        landau_par, landau_pcov = fit_pulse(trace)
         plt.show()
+        print " Fit results - Parameters: "
+        print landau_par
+        print " Fit results - Covariance matrix: "
+        print landau_pcov
+        
